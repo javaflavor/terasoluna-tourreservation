@@ -281,6 +281,7 @@
     <postgresql.version>9.4.1212.jre7</postgresql.version>
     <jasperreports.version>3.5.1</jasperreports.version>
     <selenium.version>2.46.0</selenium.version>
+    <io.spring.platform.version>Brussels-SR3</io.spring.platform.version>
     <!-- == Project Properties == -->
     <encoding>UTF-8</encoding>
     <java-version>1.8</java-version>
