@@ -117,7 +117,7 @@ $ oc new-app postgresql-ephemeral -p DATABASE_SERVICE_NAME=tourreserve-postgresq
 
 Create Jenkins pipeline buildConfig.
 
-$ oc new-build --name=tourreserve-pipeline --stragety=pipeline https://github.com/javaflavor/terasoluna-tourreservation.git
+$ oc new-build --name=tourreserve-pipeline --strategy=pipeline https://github.com/javaflavor/terasoluna-tourreservation.git
 ```
 
 If jenkins service is not deployed, the ephemeral-type of jenkins will be automatically provisioned in order to execute the build pipeline.
