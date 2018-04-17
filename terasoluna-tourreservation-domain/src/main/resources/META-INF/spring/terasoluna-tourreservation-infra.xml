@@ -15,8 +15,16 @@
     <property name="showSql" value="false" />
     <property name="database" value="${database}" />
   </bean>
+  
+  <!-- Flyway Migration Configuration -->
+  <bean id="flyway" class="org.flywaydb.core.Flyway" init-method="migrate">
+    <property name="baselineOnMigrate" value="true" />
+    <property name="locations" value="classpath:db/migration" />
+    <property name="dataSource" ref="dataSource" />
+  </bean>
 
-  <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+  <!-- EntityManagerFacoty depends on Flyway -->
+  <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" depends-on="flyway">
     <property name="packagesToScan" value="org.terasoluna.tourreservation.domain.model" />
     <property name="dataSource" ref="dataSource" />
     <property name="jpaVendorAdapter" ref="jpaVendorAdapter" />

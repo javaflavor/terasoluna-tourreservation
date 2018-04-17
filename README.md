@@ -17,7 +17,7 @@ Extract the zip file at any location of choice.
 #### Run PostgreSQL
 
 Install and start PostgreSQL.
-select 'P0stgres' as password for db user or select any password of choice. Be sure to remember the password. 
+select 'P0stgres' as password for db user or select any password of choice. Be sure to remember the password.
 If 'P0stgres' is not used, some changes will be required in configuration files. Hence be sure to remember it.
 
 ### Run PostgreSQL
@@ -72,3 +72,52 @@ Run test.
 ```console
 $ mvn -f terasoluna-tourreservation-selenium/pom.xml clean test
 ```
+
+### OpenShift Deployments
+
+This application is deployed to OpenShift environments. The sample code supports both of S2I build and Pipeline build.
+
+#### S2I Build
+
+At first, you must deploy postgresql database.
+
+```console
+$ oc new-project dev
+$ oc new-app postgresql-ephemeral -p DATABASE_SERVICE_NAME=tourreserve-postgresql \
+   -p POSTGRESQL_DATABASE=tourreserve \
+   -p POSTGRESQL_USER=test \
+   -p POSTGRESQL_PASSWORD=test
+```
+
+Next, deploy sample application with tomcat S2I builder image.
+
+```console
+$ oc new-app --name=tourreserve jboss-webserver31-tomcat8-openshift~https://github.com/javaflavor/terasoluna-tourreservation.git
+```
+
+Finally, create route for external access to this application.
+
+```console
+$ oc expose svc/tourreserve
+```
+
+#### Pipeline Build
+
+You can deploy it using Jenkins pipeline build. For this purpose, You must create buildConfig with pipeline strategy.
+
+```console
+$ oc new-project dev
+
+Deploy postgresql database.
+
+$ oc new-app postgresql-ephemeral -p DATABASE_SERVICE_NAME=tourreserve-postgresql \
+   -p POSTGRESQL_DATABASE=tourreserve \
+   -p POSTGRESQL_USER=test \
+   -p POSTGRESQL_PASSWORD=test
+
+Create Jenkins pipeline buildConfig.
+
+$ oc new-build --name=tourreserve-pipeline --stragety=pipeline https://github.com/javaflavor/terasoluna-tourreservation.git
+```
+
+If jenkins service is not deployed, the ephemeral-type of jenkins will be automatically provisioned in order to execute the build pipeline.
