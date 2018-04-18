@@ -23,4 +23,6 @@ if [ $rc -eq 0 ]; then
     WAR=$(find $LOCAL_SOURCE_DIR -name \*.war |head -1)
     echo "Copy ${WAR} --> $JWS_HOME/webapps/ROOT.war."
     cp ${WAR} $JWS_HOME/webapps/ROOT.war
+else
+    exit $rc
 fi
