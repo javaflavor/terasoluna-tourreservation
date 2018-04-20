@@ -1,7 +1,6 @@
 #!groovy
 
 node('maven') {
-	//def mvnCmd = "mvn -s ./settings.xml"
 	def mvnCmd = "mvn"
 
 	def appName = "tourreserve"
@@ -29,6 +28,13 @@ node('maven') {
 	def version    = getVersionFromPom("pom.xml")
 
 	stage('Build WAR') {
+		if(fileExists("./settings.xml")) {
+			sh "cp ./settings.xml ~/.m2/"
+		}
+		if(fileExists("./settings-security.xml")) {
+			sh "cp ./settings-security.xml ~/.m2/"
+		}
+
 		echo "Building version ${version}"
 		sh "${mvnCmd} clean package -DskipTests"
 	}
