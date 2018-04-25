@@ -10,9 +10,7 @@
 
   <bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
 
-  <context:property-placeholder order="2" location="classpath*:/META-INF/spring/*.properties"  ignore-unresolvable="true"/>
-  <!-- Override Openshift-specific properties. -->
-  <context:property-placeholder order="1" location="classpath*:/META-INF/spring/#{systemEnvironment['OPENSHIFT_BUILD_NAMESPACE']}/*.properties" ignore-unresolvable="true"/>
+  <context:property-placeholder location="classpath*:/META-INF/spring/*.properties" />
 
   <bean class="org.dozer.spring.DozerBeanMapperFactoryBean">
     <property name="mappingFiles" value="classpath*:/META-INF/dozer/**/*-mapping.xml" />

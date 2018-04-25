@@ -1,0 +1,10 @@
+#!/bin/sh
+
+NAMESPACE=/var/run/secrets/kubernetes.io/serviceaccount/namespace
+if [ -e $NAMESPACE ]; then
+	export PROJECT_TYPE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace | sed 's/.*-//')
+	export CATALINA_OPTS="$CATALINA_OPTS -Dspring.profiles.active=$PROJECT_TYPE"
+fi
+echo "PROJECT_TYPE = $PROJECT_TYPE"
+
+exec /usr/local/s2i/run

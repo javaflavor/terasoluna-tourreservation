@@ -41,7 +41,7 @@ node('maven') {
 
 	stage('Unit Tests') {
 		echo "Unit Tests"
-		//sh "${mvnCmd} test"
+		sh "${mvnCmd} test -Dspring.profiles.active=test"
 	}
 
 	def newTag = "dev-${version}"

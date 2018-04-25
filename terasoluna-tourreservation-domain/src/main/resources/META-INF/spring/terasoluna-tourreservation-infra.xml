@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:jpa="http://www.springframework.org/schema/data/jpa" xmlns:util="http://www.springframework.org/schema/util"
+  xmlns:context="http://www.springframework.org/schema/context"
   xsi:schemaLocation="
            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
            http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
        ">
 
   <import resource="classpath:/META-INF/spring/terasoluna-tourreservation-env.xml" />
@@ -63,4 +65,12 @@
     <property name="currentValueQuery" value="SELECT TO_CHAR(currval('RESERVE_NO_SEQ'),'FM00000000') AS reserveNo" />
   </bean>
 
+  <context:property-placeholder order="2" location="classpath*:/META-INF/spring/*.properties"  ignore-unresolvable="true"/>
+  <!-- Override Openshift-specific properties. -->
+  <beans profile="dev,stg,prd">
+    <context:property-placeholder order="1" location="classpath*:META-INF/spring/dev/*.properties" ignore-unresolvable="true"/>
+  </beans>
+  <beans profile="test">
+    <context:property-placeholder order="1" location="classpath*:META-INF/spring/test/*.properties" ignore-unresolvable="true"/>
+  </beans>
 </beans>
