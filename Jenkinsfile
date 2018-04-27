@@ -49,8 +49,10 @@ node('maven') {
 	stage('Build Image') {
 		echo "New Tag: ${newTag}"
 
-		// Copy the war file and the configurations to deployments directory.
-		sh "cp ./terasoluna-tourreservation-web/target/terasoluna-tourreservation-web.war ./ROOT.war"
+		// Copy the war file and other artifaces to deployments directory.
+		sh "mkdir -p deployments"
+		sh "cp ./terasoluna-tourreservation-web/target/terasoluna-tourreservation-web.war ./deployments/ROOT.war"
+		sh "cp -a ./.s2i ./deployments/"
 
 		// Start Binary Build in OpenShift using the file we just published
 		openshift.withCluster() {
@@ -62,7 +64,7 @@ node('maven') {
 				// Create buildConfig from file "openshift/sampleweb-bc.yaml".
 			    openshift.create(readFile("openshift/$appName-bc.yaml"))
 			    // Start image build.
-				openshift.selector("bc", appName).startBuild("--from-file=./ROOT.war").logs("-f")
+				openshift.selector("bc", appName).startBuild("--from-dir=./deployments").logs("-f")
 				// Tag created image.
 				def result = openshift.tag("$appName:latest", "$appName:$newTag")
 				echo "${result.actions[0].cmd}"
