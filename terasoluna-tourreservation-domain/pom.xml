@@ -59,6 +59,12 @@
     </dependency>
     <!-- == End JasperReports == -->
 
+	<!-- Flyway DB Migration (for JUnit) -->
+	<dependency>
+		<groupId>org.flywaydb</groupId>
+		<artifactId>flyway-core</artifactId>
+	</dependency>
+
     <!-- == Begin Unit Test == -->
     <!-- == Begin TourReservation == -->
     <dependency>

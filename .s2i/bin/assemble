@@ -1,0 +1,28 @@
+#!/bin/sh
+ 
+LOCAL_SOURCE_DIR=/tmp/src
+mkdir -p $LOCAL_SOURCE_DIR
+ 
+if [ -f $LOCAL_SOURCE_DIR/settings-security.xml ]; then
+    echo "Copying maven security file: ./settings-security.xml --> ~/.m2/."
+    mkdir -p $HOME/.m2
+    mv $LOCAL_SOURCE_DIR/settings-security.xml $HOME/.m2
+fi
+if [ -f $LOCAL_SOURCE_DIR/settings.xml ]; then
+    echo "Copying maven settings file: ./settings.xml --> ~/.m2/."
+    mkdir -p $HOME/.m2
+    mv $LOCAL_SOURCE_DIR/settings.xml $HOME/.m2
+fi
+ 
+# Execute original assemble script.
+/usr/local/s2i/assemble
+rc=$?
+
+# Copy war in sub project to tomcat.
+if [ $rc -eq 0 ]; then
+    WAR=$(find $LOCAL_SOURCE_DIR -name \*.war |head -1)
+    echo "Copy ${WAR} --> $JWS_HOME/webapps/ROOT.war."
+    cp ${WAR} $JWS_HOME/webapps/ROOT.war
+else
+    exit $rc
+fi

@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  labels:
+    app: tourreserve
+  name: tourreserve
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: tourreserve:latest
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    binary: {}
+    type: Binary
+  strategy:
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: jboss-webserver31-tomcat8-openshift:latest
+        namespace: openshift
+    type: Source
