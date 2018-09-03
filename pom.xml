@@ -136,6 +136,33 @@
         </plugin>
       </plugins>
     </pluginManagement>
+    <plugins>
+		<plugin>
+			<groupId>org.jacoco</groupId>
+			<artifactId>jacoco-maven-plugin</artifactId>
+			<version>0.8.0</version>
+			<executions>
+				<execution>
+					<id>prepare-agent</id>
+					<goals>
+						<goal>prepare-agent</goal>
+					</goals>
+				</execution>
+				<execution>
+					<id>report</id>
+					<phase>test</phase>
+					<goals>
+						<goal>report</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
+		<plugin>
+			<groupId>org.sonarsource.scanner.maven</groupId>
+			<artifactId>sonar-maven-plugin</artifactId>
+			<version>5.1</version>
+		</plugin>
+    </plugins>
   </build>
   <dependencyManagement>
     <dependencies>
@@ -285,10 +312,13 @@
     <encoding>UTF-8</encoding>
     <java-version>1.8</java-version>
     <project.root.basedir>${project.basedir}</project.root.basedir>
+    <!-- == SonarQube Properties == -->
+    <sonar.exclusions>**/*.js</sonar.exclusions>
   </properties>
   <modules>
     <module>terasoluna-tourreservation-env</module>
     <module>terasoluna-tourreservation-domain</module>
     <module>terasoluna-tourreservation-web</module>
+    <module>integration-test</module>
   </modules>
 </project>

@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.terasoluna.app</groupId>
+	<version>5.4.1.RELEASE</version>
+	<artifactId>terasoluna-tourreservation-it</artifactId>
+	<packaging>jar</packaging>
+	<name>TERASOLUNA Server Framework for Java (5.x) - Tour Reservation Application - Integration Tests</name>
+	<description>Web layer of Tour Reservation Application using TERASOLUNA Server Framework for Java (5.x)</description>
+
+	<properties>
+		<!-- == Other Properties == -->
+		<version.maven.failsafe.plugin>2.20.1</version.maven.failsafe.plugin>
+		<version.selenide>4.9</version.selenide>
+		<!-- == Selenide Properties == -->
+		<target.host>tourreserve.dev.svc.cluster.local</target.host> <!-- required: oc adm pod-network join-projects to dev -->
+		<target.port>8080</target.port>
+		<webdriver.dir>${user.home}/.m2/drivers</webdriver.dir>
+	</properties>
+
+	<dependencies>
+		<!-- == Begin Unit Test == -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+			<version>4.12</version>
+		</dependency>
+		<!-- selenide -->
+		<dependency>
+			<groupId>com.codeborne</groupId>
+			<artifactId>selenide</artifactId>
+			<version>${version.selenide}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>${version.maven.failsafe.plugin}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<systemPropertyVariables>
+						<selenide.browser>${selenide.browser}</selenide.browser>
+						<webdriver.ie.driver>${webdriver.ie.driver}</webdriver.ie.driver>
+						<webdriver.chrome.driver>${webdriver.chrome.driver}</webdriver.chrome.driver>
+						<target.host>${target.host}</target.host>
+						<target.port>${target.port}</target.port>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-report-plugin</artifactId>
+				<version>${version.maven.failsafe.plugin}</version>
+				<executions>
+					<execution>
+						<id>generate-it-reports</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>failsafe-report-only</goal>
+						</goals>
+						<configuration>
+							<reportsDirectories>
+								<file>${project.build.directory}/failsafe-reports</file>
+							</reportsDirectories>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.github.webdriverextensions</groupId>
+				<artifactId>webdriverextensions-maven-plugin</artifactId>
+				<version>3.1.2</version>
+				<executions>
+					<execution>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>install-drivers</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<installationDirectory>${webdriver.dir}</installationDirectory>
+					<drivers>
+						<driver>
+							<name>internetexplorerdriver</name>
+							<platform>windows</platform>
+							<bit>32</bit>
+							<version>3.8.0</version>
+						</driver>
+						<driver>
+							<name>chromedriver</name>
+							<platform>windows</platform>
+							<bit>32</bit>
+							<version>2.37.0</version>
+						</driver>
+						<driver>
+							<name>chromedriver</name>
+							<platform>mac</platform>
+							<bit>64</bit>
+							<version>2.37.0</version>
+						</driver>
+						<driver>
+							<name>phantomjs</name>
+							<platform>linux</platform>
+							<bit>64</bit>
+							<version>2.1.1</version>
+						</driver>
+					</drivers>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>platform-linux</id>
+			<activation>
+				<os>
+					<family>linux</family>
+				</os>
+			</activation>
+			<properties>
+				<selenide.browser>phantomjs</selenide.browser>
+				<webdriver.chrome.driver>${webdriver.dir}/phantomjs-linux-64bit</webdriver.chrome.driver>
+			</properties>
+		</profile>
+		<profile>
+			<id>platform-windows</id>
+			<activation>
+				<os>
+					<family>windows</family>
+				</os>
+			</activation>
+			<properties>
+				<selenide.browser>ie</selenide.browser>
+				<webdriver.chrome.driver>${webdriver.dir}/chromedriver-windows-32bit.exe</webdriver.chrome.driver>
+				<webdriver.ie.driver>${webdriver.dir}/internetexplorerdriver-windows-32bit.exe</webdriver.ie.driver>
+			</properties>
+		</profile>
+		<profile>
+			<id>platform-mac</id>
+			<activation>
+				<os>
+					<family>mac</family>
+				</os>
+			</activation>
+			<properties>
+				<selenide.browser>chrome</selenide.browser>
+				<webdriver.chrome.driver>${webdriver.dir}/chromedriver-mac-64bit</webdriver.chrome.driver>
+			</properties>
+		</profile>
+	</profiles>
+</project>

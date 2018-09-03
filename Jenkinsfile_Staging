@@ -1,0 +1,159 @@
+#!groovy
+
+node('maven') {
+	def mvnCmd = "mvn"
+
+	def appName = "tourreserve"
+	def devPrj = "dev"
+	def stgPrj = "stg"
+
+	stage('Prepare Postgresql in Stg') {
+		// Do deploy the target.
+		openshift.withCluster() {
+			openshift.withProject(stgPrj) {
+				// Check if postgresql exists.
+				if (!openshift.selector("dc", "$appName-postgresql").exists()) {
+					// Deploy postgresql server.
+			    	def created = openshift.newApp("postgresql-ephemeral",
+			    		"-p", "DATABASE_SERVICE_NAME=$appName-postgresql",
+			    		"-p", "POSTGRESQL_DATABASE=$appName",
+			    		"-p", "POSTGRESQL_USER=test",
+			    		"-p", "POSTGRESQL_PASSWORD=test")
+					echo "${created.actions[0].cmd}"
+					echo "${created.actions[0].out}"
+
+					// Wait and print status deployment.
+					def dc = created.narrow("dc")
+					dc.rollout().status("-w")
+				}
+			}
+		}
+	}
+
+	stage('Checkout Source') {
+		checkout scm
+	}
+
+	def groupId    = getGroupIdFromPom("pom.xml")
+	def artifactId = getArtifactIdFromPom("pom.xml")
+	def version    = getVersionFromPom("pom.xml")
+
+	def newTag = "dev-${version}"
+
+	stage('Prepare env Stg') {
+		openshift.withCluster() {
+			openshift.withProject(stgPrj) {
+			    def readinessProbe = [
+			        httpGet: [
+			        	path: "/", port: 8080, scheme: "HTTP"
+			        ],
+			        initialDelaySeconds: 10,
+			        periodSeconds: 10,
+			        timeoutSeconds: 5,
+			        successThreshold: 1,
+			        failureThreshold: 3
+			    ]
+				// Check blue configuration.
+			    if (!openshift.selector("dc", "$appName-blue").exists()) {
+			        def created = openshift.newApp("$devPrj/$appName:_unused_", "--name=$appName-blue", "--allow-missing-imagestream-tags", "--labels=app=$appName")
+			        // Patch triggers to manual.
+			        def patch = created.narrow("dc").object()
+			        def trigger = patch.spec.triggers.find{ it.type == 'ImageChange' }
+			        trigger.imageChangeParams.automatic = false
+			        patch.spec.triggers = [ trigger ]
+			        // Add readinessProbe
+			        patch.spec.template.spec.containers[0].readinessProbe = readinessProbe
+			        // Apply patch
+			        openshift.apply(patch)
+			        // Create svc, because oc new-app does not create it when no image stream exists.
+			        created.narrow("dc").expose("--port=8080")
+			    }
+			    // Delete unnecessary is.
+			    if (openshift.selector("is", "$appName-blue").exists()) {
+			        openshift.selector("is", "$appName-blue").delete()
+			    }
+				// Check green configuration.
+			    if (!openshift.selector("dc", "$appName-green").exists()) {
+			        def created = openshift.newApp("$devPrj/$appName:_unused_", "--name=$appName-green", "--allow-missing-imagestream-tags", "--labels=app=$appName")
+			        // Patch triggers to manual.
+			        def patch = created.narrow("dc").object()
+			        def trigger = patch.spec.triggers.find{ it.type == 'ImageChange' }
+			        trigger.imageChangeParams.automatic = false
+			        patch.spec.triggers = [ trigger ]
+			        // Add readinessProbe
+			        patch.spec.template.spec.containers[0].readinessProbe = readinessProbe
+			        // Apply patch
+			        openshift.apply(patch)
+			        // Create svc, because oc new-app does not create it when no image stream exists.
+			        created.narrow("dc").expose("--port=8080")
+			    }
+			    // Delete unnecessary is.
+			    if (openshift.selector("is", "$appName-green").exists()) {
+			        openshift.selector("is", "$appName-green").delete()
+			    }
+			    // Create route shared with blue and green.
+			    if (!openshift.selector("route", "$appName").exists()) {
+			        openshift.selector("svc", "$appName-blue").expose("--name=$appName")
+			    }
+			}
+		}		
+	}
+
+    def dest = "$appName-green"
+    def active = ""
+    
+	stage('Prepare Blue/Green') {
+		openshift.withCluster() {
+			openshift.withProject(stgPrj) {
+			    def route = openshift.selector("route", "$appName").object()
+			    active = route.spec.to.name
+			    echo "Active svc: $active"
+			    
+			    if (active == "$appName-green") {
+			        dest = "$appName-blue"
+			    }
+			    echo "Dest svc:   $dest"
+			}
+		}
+	}
+	
+	stage('Deploy to Stg') {
+		openshift.withCluster() {
+			openshift.withProject(stgPrj) {
+			    echo "Deploying to ${dest}"
+			    def patch = openshift.selector("dc", "$dest").object()
+			    def trigger = patch.spec.triggers.find{ it.type == 'ImageChange' }
+			    trigger.imageChangeParams.from.name = "$appName:$newTag"
+			    trigger.imageChangeParams.from.namespace = devPrj
+			    echo "Patch spec: ${patch.spec.triggers}"
+			    
+			    openshift.apply(patch)
+			    
+			    def dc = openshift.selector("dc", "$dest")
+			    dc.rollout().latest()
+			    dc.rollout().status("-w")
+			    
+			    // Switch over to new route.
+			    patch = openshift.selector("route", "$appName").object()
+			    patch.spec.to.name = dest
+			    echo "Patch spec.to.name: ${patch.spec.to.name}"
+
+			    openshift.apply(patch)
+			}
+		}
+	}
+}
+
+// Convenience Functions to read variables from the pom.xml
+def getVersionFromPom(pom) {
+	def matcher = readFile(pom) =~ '<version>(.+)</version>'
+	matcher ? matcher[0][1] : null
+}
+def getGroupIdFromPom(pom) {
+	def matcher = readFile(pom) =~ '<groupId>(.+)</groupId>'
+	matcher ? matcher[0][1] : null
+}
+def getArtifactIdFromPom(pom) {
+	def matcher = readFile(pom) =~ '<artifactId>(.+)</artifactId>'
+	matcher ? matcher[0][1] : null
+}

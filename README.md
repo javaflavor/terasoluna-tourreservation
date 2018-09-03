@@ -106,18 +106,10 @@ $ oc expose svc/tourreserve
 You can deploy it using Jenkins pipeline build. For this purpose, You must create buildConfig with pipeline strategy.
 
 ```console
-$ oc new-project dev
-
-Deploy postgresql database.
-
-$ oc new-app postgresql-ephemeral -p DATABASE_SERVICE_NAME=tourreserve-postgresql \
-   -p POSTGRESQL_DATABASE=tourreserve \
-   -p POSTGRESQL_USER=test \
-   -p POSTGRESQL_PASSWORD=test
-
-Create Jenkins pipeline buildConfig.
 
 $ oc new-build --name=tourreserve-pipeline --strategy=pipeline https://github.com/javaflavor/terasoluna-tourreservation.git
 ```
+
+You don't need to create Postgresql pod. It is automatically deployed in dev project.
 
 If jenkins service is not deployed, the ephemeral-type of jenkins will be automatically provisioned in order to execute the build pipeline.

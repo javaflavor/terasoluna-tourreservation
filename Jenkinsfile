@@ -5,16 +5,28 @@ node('maven') {
 
 	def appName = "tourreserve"
 	def devPrj = "dev"
+	def devopsPrj = "devops"
 
 	stage('Cleanup env Dev') {
 		// Delete all objects except for is.
 		openshift.withCluster() {
 			openshift.withProject(devPrj) {
+				// Delete webapp.
 			    openshift.selector("bc", [ app: appName ]).delete()
 			    openshift.selector("dc", [ app: appName ]).delete()
 			    openshift.selector("svc", [ app: appName ]).delete()
 			    openshift.selector("pod", [ app: appName ]).delete()
 			    openshift.selector("route", [ app: appName ]).delete()
+				// Delete postgresql.
+				if (openshift.selector("dc/$appName-postgresql").exists()) {
+			    	openshift.selector("dc/$appName-postgresql").delete()				       
+				}
+				if (openshift.selector("svc/$appName-postgresql").exists()) {
+			    	openshift.selector("svc/$appName-postgresql").delete()
+			    }
+				if (openshift.selector("secret/$appName-postgresql").exists()) {
+			    	openshift.selector("secret/$appName-postgresql").delete()
+			    }
 			}
 		}
 	}
@@ -38,12 +50,45 @@ node('maven') {
 		echo "Building version ${version}"
 		sh "${mvnCmd} clean package -DskipTests"
 	}
+	
+	stage('Prepare Postgresql in Dev') {
+		// Do deploy the target.
+		openshift.withCluster() {
+			openshift.withProject(devPrj) {
+				// Deploy postgresql server.
+			    def created = openshift.newApp("postgresql-ephemeral",
+			    	"-p", "DATABASE_SERVICE_NAME=$appName-postgresql",
+			    	"-p", "POSTGRESQL_DATABASE=$appName",
+			    	"-p", "POSTGRESQL_USER=test",
+			    	"-p", "POSTGRESQL_PASSWORD=test")
+				echo "${created.actions[0].cmd}"
+				echo "${created.actions[0].out}"
 
+				// Wait and print status deployment.
+				def dc = created.narrow("dc")
+				dc.rollout().status("-w")
+			}
+		}
+	}
+	
 	stage('Unit Tests') {
 		echo "Unit Tests"
 		sh "${mvnCmd} test -Dspring.profiles.active=test"
 	}
 
+ 	stage('Code Analysis') {
+		openshift.withCluster() {
+			openshift.withProject(devopsPrj) {
+				if (openshift.selector("svc/sonarqube").exists()) {
+					echo "Code Analysis"
+					sh "${mvnCmd} sonar:sonar -Dsonar.host.url=http://sonarqube:9000/ -Dsonar.projectName=${appName}"
+				} else {
+					echo "Warning: No SonarQube deployed. Skip Code Analysis."      
+				}
+			}
+		}
+	}
+	
 	def newTag = "dev-${version}"
 
 	stage('Build Image') {
@@ -77,7 +122,7 @@ node('maven') {
 		// Do deploy the target.
 		openshift.withCluster() {
 			openshift.withProject(devPrj) {
-				// Deploy created image.
+				// Deploy created webapp image.
 			    def created = openshift.newApp("--name=$appName", "$devPrj/$appName:$newTag")
 				echo "${created.actions[0].cmd}"
 				echo "${created.actions[0].out}"
@@ -88,6 +133,24 @@ node('maven') {
 				// Wait and print status deployment.
 				def dc = created.narrow("dc")
 				dc.rollout().status("-w")
+			}
+		}
+	}
+
+	stage('Integration Tests') {
+		echo "Integration Tests"
+		sh "${mvnCmd} verify -f integration-test/pom.xml"
+		
+		// Add Staging ready tag to the IT-passed image.
+		newTag = "stg-${version}"
+		echo "New Tag: ${newTag}"
+		
+		openshift.withCluster() {
+			openshift.withProject(devPrj) {
+				// Tag IT-passed image.
+				def result = openshift.tag("$appName:latest", "$appName:$newTag")
+				echo "${result.actions[0].cmd}"
+				echo "${result.actions[0].out}"
 			}
 		}
 	}
