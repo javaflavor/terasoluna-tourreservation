@@ -3,9 +3,9 @@
 node('maven') {
 	def mvnCmd = "mvn"
 
-	def appName = "tourreserve"
-	def devPrj = "dev"
-	def stgPrj = "stg"
+	def appName = "${env.APPNAME ?: 'tourreserve'}"
+	def devPrj = "${env.DEV_PROJECT ?: 'dev'}"
+	def stgPrj = "${env.STG_PROJECT ?: 'stg'}"
 
 	stage('Prepare Postgresql in Stg') {
 		// Do deploy the target.

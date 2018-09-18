@@ -3,9 +3,9 @@
 node('maven') {
 	def mvnCmd = "mvn"
 
-	def appName = "tourreserve"
-	def devPrj = "dev"
-	def devopsPrj = "devops"
+	def appName = "${env.APPNAME ?: 'tourreserve'}"
+	def devPrj = "${env.DEV_PROJECT ?: 'dev'}"
+	def devopsPrj = "${env.DEVOPS_PROJECT ?: 'devops'}"
 
 	stage('Cleanup env Dev') {
 		// Delete all objects except for is.
