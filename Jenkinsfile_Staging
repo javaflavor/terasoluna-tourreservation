@@ -55,7 +55,7 @@ node('maven') {
 			    ]
 				// Check blue configuration.
 			    if (!openshift.selector("dc", "$appName-blue").exists()) {
-			        def created = openshift.newApp("$devPrj/$appName:_unused_", "--name=$appName-blue", "--allow-missing-imagestream-tags", "--labels=app=$appName")
+			        def created = openshift.newApp("$devPrj/$appName", "--name=$appName-blue", "--allow-missing-imagestream-tags", "--labels=app=$appName")
 			        // Patch triggers to manual.
 			        def patch = created.narrow("dc").object()
 			        def trigger = patch.spec.triggers.find{ it.type == 'ImageChange' }
@@ -64,9 +64,11 @@ node('maven') {
 			        // Add readinessProbe
 			        patch.spec.template.spec.containers[0].readinessProbe = readinessProbe
 			        // Apply patch
-			        openshift.apply(patch)
+			        openshift.replace(patch, "--force")
 			        // Create svc, because oc new-app does not create it when no image stream exists.
-			        created.narrow("dc").expose("--port=8080")
+			        if (!openshift.selector("dc", "$appName-blue").exists()) {
+			        	openshift.selector("dc", "$appName-blue").expose("--port=8080")
+			        }
 			    }
 			    // Delete unnecessary is.
 			    if (openshift.selector("is", "$appName-blue").exists()) {
@@ -74,7 +76,7 @@ node('maven') {
 			    }
 				// Check green configuration.
 			    if (!openshift.selector("dc", "$appName-green").exists()) {
-			        def created = openshift.newApp("$devPrj/$appName:_unused_", "--name=$appName-green", "--allow-missing-imagestream-tags", "--labels=app=$appName")
+			        def created = openshift.newApp("$devPrj/$appName", "--name=$appName-green", "--allow-missing-imagestream-tags", "--labels=app=$appName")
 			        // Patch triggers to manual.
 			        def patch = created.narrow("dc").object()
 			        def trigger = patch.spec.triggers.find{ it.type == 'ImageChange' }
@@ -83,9 +85,11 @@ node('maven') {
 			        // Add readinessProbe
 			        patch.spec.template.spec.containers[0].readinessProbe = readinessProbe
 			        // Apply patch
-			        openshift.apply(patch)
+			        openshift.replace(patch, "--force")
 			        // Create svc, because oc new-app does not create it when no image stream exists.
-			        created.narrow("dc").expose("--port=8080")
+			        if (!openshift.selector("dc", "$appName-green").exists()) {
+			        	openshift.selector("dc", "$appName-green").expose("--port=8080")
+			        }
 			    }
 			    // Delete unnecessary is.
 			    if (openshift.selector("is", "$appName-green").exists()) {
