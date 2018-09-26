@@ -73,7 +73,7 @@ node('maven') {
 	
 	stage('Unit Tests') {
 		echo "Unit Tests"
-		sh "${mvnCmd} test -Dspring.profiles.active=test"
+		sh "${mvnCmd} test -Dspring.profiles.active=test -Ddatabase.host=${appName}-postgresql.${devPrj}"
 	}
 
  	stage('Code Analysis') {
