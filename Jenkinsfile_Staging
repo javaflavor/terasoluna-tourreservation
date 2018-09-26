@@ -134,7 +134,16 @@ node('maven') {
 			    openshift.apply(patch)
 			    
 			    def dc = openshift.selector("dc", "$dest")
+			    sleep 5
 			    dc.rollout().latest()
+			    // 'oc rollout status' may return code 1. So, use sh to avoid pipeline failure.
+			    sh "oc rollout status dc/$dest --watch=false -n $stgPrj > result.txt || /bin/true"
+			    def result = readFile("result.txt")
+			    echo "### result = ${result}"
+			    if (result.contains("cancelled")) {
+			    	echo "### Retry rollout, because rollout will fail at first time deployment."
+			    	dc.rollout().latest()
+			    }
 			    dc.rollout().status("-w")
 			    
 			    // Switch over to new route.
