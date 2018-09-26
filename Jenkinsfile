@@ -139,7 +139,7 @@ node('maven') {
 
 	stage('Integration Tests') {
 		echo "Integration Tests"
-		sh "${mvnCmd} verify -f integration-test/pom.xml"
+		sh "${mvnCmd} verify -f integration-test/pom.xml -Dtarget.host=${appName}.${devPrj}"
 		
 		// Add Staging ready tag to the IT-passed image.
 		newTag = "stg-${version}"
