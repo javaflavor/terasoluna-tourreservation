@@ -3,6 +3,9 @@
 NAMESPACE=/var/run/secrets/kubernetes.io/serviceaccount/namespace
 if [ -e $NAMESPACE ]; then
 	export PROJECT_TYPE=$(cat $NAMESPACE | sed 's/.*-//')
+	if [ "$PROJECT_TYPE" != "dev" ] && [ "$PROJECT_TYPE" != "stg" ] && [ "$PROJECT_TYPE" != "prd" ]; then
+		export PROJECT_TYPE=dev
+	fi
 	export CATALINA_OPTS="$CATALINA_OPTS -Dspring.profiles.active=$PROJECT_TYPE"
 fi
 echo "PROJECT_TYPE = $PROJECT_TYPE"
