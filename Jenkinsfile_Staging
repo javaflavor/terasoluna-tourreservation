@@ -55,7 +55,7 @@ node('maven') {
 			    ]
 				// Check blue configuration.
 			    if (!openshift.selector("dc", "$appName-blue").exists()) {
-			        def created = openshift.newApp("$devPrj/$appName:_unused_", "--name=$appName-blue", "--allow-missing-imagestream-tags", "--labels=app=$appName")
+			        def created = openshift.newApp("$devPrj/$appName:_unused_", "--as-deployment-config", "--name=$appName-blue", "--allow-missing-imagestream-tags", "--labels=app=$appName")
 			        // Patch triggers to manual.
 			        def patch = created.narrow("dc").object()
 			        def trigger = patch.spec.triggers.find{ it.type == 'ImageChange' }
@@ -76,7 +76,7 @@ node('maven') {
 			    }
 				// Check green configuration.
 			    if (!openshift.selector("dc", "$appName-green").exists()) {
-			        def created = openshift.newApp("$devPrj/$appName:_unused_", "--name=$appName-green", "--allow-missing-imagestream-tags", "--labels=app=$appName")
+			        def created = openshift.newApp("$devPrj/$appName:_unused_", "--as-deployment-config", "--name=$appName-green", "--allow-missing-imagestream-tags", "--labels=app=$appName")
 			        // Patch triggers to manual.
 			        def patch = created.narrow("dc").object()
 			        def trigger = patch.spec.triggers.find{ it.type == 'ImageChange' }

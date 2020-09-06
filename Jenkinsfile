@@ -123,7 +123,7 @@ node('maven') {
 		openshift.withCluster() {
 			openshift.withProject(devPrj) {
 				// Deploy created webapp image.
-			    def created = openshift.newApp("--name=$appName", "$devPrj/$appName:$newTag")
+			    def created = openshift.newApp("--name=$appName", "--as-deployment-config", "$devPrj/$appName:$newTag")
 				echo "${created.actions[0].cmd}"
 				echo "${created.actions[0].out}"
 
