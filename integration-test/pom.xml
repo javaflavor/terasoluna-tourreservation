@@ -18,6 +18,8 @@
 		<target.host>tourreserve.dev.svc.cluster.local</target.host> <!-- required: oc adm pod-network join-projects to dev -->
 		<target.port>8080</target.port>
 		<webdriver.dir>${user.home}/.m2/drivers</webdriver.dir>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 
 	<dependencies>

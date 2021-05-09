@@ -50,7 +50,7 @@ import org.joda.time.DateTime;
 @ToString(exclude = { "reserveList", "accommodation", "arrival", "departure" })
 @EqualsAndHashCode(exclude = { "reserveList", "accommodation", "arrival",
         "departure" })
-@NoArgsConstructor
+// @NoArgsConstructor
 @Entity
 @Table(name = "tourinfo")
 public class TourInfo implements Serializable {
@@ -127,6 +127,7 @@ public class TourInfo implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "tourInfo")
     private List<Reserve> reserveList;
 
+    public TourInfo() {}
     public TourInfo(String tourCode) {
         this.tourCode = tourCode;
     }

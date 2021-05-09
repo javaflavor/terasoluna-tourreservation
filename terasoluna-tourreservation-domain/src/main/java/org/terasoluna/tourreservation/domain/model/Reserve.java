@@ -43,7 +43,7 @@ import lombok.ToString;
 @Data
 @ToString(exclude = { "customer", "tourInfo" })
 @EqualsAndHashCode(exclude = { "customer", "tourInfo" })
-@NoArgsConstructor
+// @NoArgsConstructor
 @Entity
 @Table(name = "reserve")
 public class Reserve implements Serializable {
@@ -99,6 +99,7 @@ public class Reserve implements Serializable {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private Customer customer;
 
+    public Reserve() {}
     public Reserve(String reserveNo) {
         this.reserveNo = reserveNo;
     }

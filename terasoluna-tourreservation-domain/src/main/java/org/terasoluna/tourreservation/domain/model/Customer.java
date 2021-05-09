@@ -43,7 +43,7 @@ import lombok.ToString;
 @Data
 @ToString(exclude = "reserveList")
 @EqualsAndHashCode(exclude = "reserveList")
-@NoArgsConstructor
+// @NoArgsConstructor
 @Entity
 @Table(name = "customer")
 public class Customer implements Serializable {
@@ -111,6 +111,7 @@ public class Customer implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "customer")
     private List<Reserve> reserveList;
 
+    public Customer() {}
     public Customer(String customerCode) {
         this.customerCode = customerCode;
     }
