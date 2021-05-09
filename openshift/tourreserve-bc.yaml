@@ -21,6 +21,6 @@ spec:
     sourceStrategy:
       from:
         kind: ImageStreamTag
-        name: jboss-webserver31-tomcat8-openshift:1.4
+        name: jboss-webserver54-openjdk11-tomcat9-openshift-ubi8:latest
         namespace: openshift
     type: Source
