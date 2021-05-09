@@ -11,7 +11,7 @@
 
 	<properties>
 		<!-- == Other Properties == -->
-		<version.maven.failsafe.plugin>2.20.1</version.maven.failsafe.plugin>
+		<version.maven.failsafe.plugin>2.22.2</version.maven.failsafe.plugin>
 		<version.selenide>4.9</version.selenide>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<!-- == Selenide Properties == -->

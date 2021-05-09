@@ -133,5 +133,7 @@
 
   <properties>
     <project.root.basedir>${project.parent.basedir}</project.root.basedir>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 </project>
