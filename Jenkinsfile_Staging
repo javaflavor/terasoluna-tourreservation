@@ -126,6 +126,7 @@ node('maven') {
 			openshift.withProject(stgPrj) {
 			    echo "Deploying to ${dest}"
 			    def patch = openshift.selector("dc", "$dest").object()
+			    patch.spec.replicas = 1
 			    def trigger = patch.spec.triggers.find{ it.type == 'ImageChange' }
 			    trigger.imageChangeParams.from.name = "$appName:$newTag"
 			    trigger.imageChangeParams.from.namespace = devPrj
@@ -155,6 +156,19 @@ node('maven') {
 			}
 		}
 	}
+
+	stage('Stop previous version') {
+		openshift.withCluster() {
+			openshift.withProject(stgPrj) {
+				echo "Stopping to ${active}"
+				def patch = openshift.selector("dc", "$active").object()
+				patch.spec.replicas = 0
+			    
+				openshift.apply(patch)
+			}
+		}
+	}
+
 }
 
 // Convenience Functions to read variables from the pom.xml
