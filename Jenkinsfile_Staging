@@ -97,7 +97,7 @@ node('maven') {
 			    }
 			    // Create route shared with blue and green.
 			    if (!openshift.selector("route", "$appName").exists()) {
-			        openshift.selector("svc", "$appName-blue").expose("--name=$appName")
+			        openshift.selector("svc", "$appName-blue").expose("--name=$appName", "--port=8080")
 			    }
 			}
 		}		
